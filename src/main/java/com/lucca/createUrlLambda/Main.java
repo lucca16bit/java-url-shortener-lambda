@@ -1,17 +1,35 @@
 package com.lucca.createUrlLambda;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public class Main implements RequestHandler<Map<String, Object>, Map<String, String>> {
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Override
+    public Map<String, String> handleRequest(Map<String, Object> input, Context context) {
+        String body = input.get("body").toString();
+
+        Map<String, String> bodyMap;
+        try {
+            bodyMap = objectMapper.readValue(body, Map.class);
+        } catch (Exception exception) {
+            throw new RuntimeException("Error parsing JSON body: " + exception.getMessage(), exception);
         }
+
+        String originalUrl = bodyMap.get("originalUrl");
+        String explorationTime = bodyMap.get("explorationTime");
+
+        String shortUrlCode = UUID.randomUUID().toString().substring(0, 8);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("code", shortUrlCode);
+
+        return response;
     }
 }
